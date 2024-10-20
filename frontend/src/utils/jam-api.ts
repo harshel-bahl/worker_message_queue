@@ -92,3 +92,13 @@ export async function selectAllCompanies(sourceCollectionId: string, targetColle
     }
 }
 
+export async function deleteAllAssociationsInCollection(collectionId: string): Promise<any> {
+    try {
+        const response = await axios.delete(`${BASE_URL}/collections/${collectionId}/delete_all_associations`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting all associations in collection:', error);
+        throw error;
+    }
+}
+

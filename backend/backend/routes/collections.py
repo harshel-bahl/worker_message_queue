@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from backend.celery.tasks import modify_companies_in_collection_task, select_all_task
+from backend.celery.tasks import modify_companies_in_collection_task, select_all_task, delete_all_associations_in_collection_task
 
 from backend.db import database
 from backend.routes.companies import (
@@ -119,4 +119,12 @@ def select_all_companies(
     db: Session = Depends(database.get_db),
 ):
     task = select_all_task.apply_async(args=[str(source_collection_id), str(target_collection_id)])
+    return {"status": "in_progress", "task_id": task.id}
+
+@router.delete("/{collection_id}/delete_all_associations")
+def delete_all_associations_in_collection(
+    collection_id: uuid.UUID,
+    db: Session = Depends(database.get_db),
+):
+    task = delete_all_associations_in_collection_task.apply_async(args=[str(collection_id)])
     return {"status": "in_progress", "task_id": task.id}

@@ -79,3 +79,33 @@ def select_all_task(self, source_collection_id, target_collection_id):
         raise e
     finally:
         db.close()
+
+@celery_app.task(bind=True)
+def delete_all_associations_in_collection_task(self, collection_id):
+    db = database.SessionLocal()
+    try:
+        collection_id = uuid.UUID(collection_id)
+        associations = db.query(CompanyCollectionAssociation).filter_by(collection_id=collection_id).all()
+        total = len(associations)
+
+        for i, association in enumerate(associations):
+            db.delete(association)
+            try:
+                db.commit()
+            except IntegrityError:
+                db.rollback()
+            except Exception as e:
+                db.rollback()
+                raise e
+
+            self.update_state(
+                state='PROGRESS',
+                meta={'current': i + 1, 'total': total, 'status': 'In progress'}
+            )
+
+        return {'current': total, 'total': total, 'status': 'Task completed! All associations deleted.'}
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()

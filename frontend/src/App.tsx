@@ -91,7 +91,7 @@ function App() {
                 <NavigationMenuList>
                   <NavigationMenuItem>
                     <NavigationMenuTrigger className="text-xl bg-orange-500">Tasks</NavigationMenuTrigger>
-                    <NavigationMenuContent className="min-w-[800px] min-h-[400px] bg-orange-500">
+                    <NavigationMenuContent className="min-w-[800px] h-[500px] bg-orange-500 overflow-y-auto">
                       <div className="flex">
                         <div className="w-1/3 mx-1 flex flex-col gap-2">
                           <p className="font-bold">In Progress</p>

@@ -1,6 +1,6 @@
 import { DataGrid } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import { getCollectionsById, ICompany, modifyCompaniesInCollection, selectAllCompanies } from "../utils/jam-api";
+import { deleteAllAssociationsInCollection, getCollectionsById, ICompany, modifyCompaniesInCollection, selectAllCompanies } from "../utils/jam-api";
 import { Button } from "@mui/material";
 import { useToast } from "../hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,7 +37,7 @@ const CompanyTable = (props: { selectedCollectionId: string, likedCollectionId: 
     queryClient.invalidateQueries({
       queryKey: ["companies", props.selectedCollectionId]
     });
-  }, [offset, pageSize]);
+  }, [offset, pageSize, props.selectedCollectionId]);
 
   const handleModifyCollection = async (action: string) => {
     try {
@@ -76,6 +76,29 @@ const CompanyTable = (props: { selectedCollectionId: string, likedCollectionId: 
       });
       props.setTaskIds((prevTaskIds) => [...prevTaskIds, result.task_id]);
       setSelectedRows([]);
+    }
+  };
+
+  const handleDeleteAllAssociations = async () => {
+    try {
+      const result = await deleteAllAssociationsInCollection(props.selectedCollectionId);
+
+      if (result.status === "completed") {
+        toast({
+          title: "All associations deleted successfully!",
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["companies", props.selectedCollectionId]
+        });
+      } else if (result.status === "in_progress") {
+        toast({
+          title: `Task in progress. Task ID: ${result.task_id}`,
+        });
+        props.setTaskIds((prevTaskIds) => [...prevTaskIds, result.task_id]);
+      }
+    } catch (error) {
+      console.error("Error deleting all associations in collection:", error);
+      alert("Failed to delete all associations in collection.");
     }
   };
 
@@ -143,6 +166,12 @@ const CompanyTable = (props: { selectedCollectionId: string, likedCollectionId: 
               <Button variant="contained" color="primary" size="small" onClick={() => handleModifyCollection("remove")}>
                 Remove from Liked
               </Button>
+
+              {props.selectedCollectionId === props.likedCollectionId && (
+                <Button variant="contained" color="primary" size="small" onClick={handleDeleteAllAssociations}>
+                  Delete All From Liked
+                </Button>
+              )}
             </>
           )}
 
